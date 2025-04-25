@@ -1,0 +1,139 @@
+linters-settings:
+  golint:
+    min-confidence: 0
+  govet:
+    check-shadowing: true
+  gocyclo:
+    min-complexity: 15
+  maligned:
+    suggest-new: true
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  misspell:
+    locale: US
+  lll:
+    line-length: 140
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - exitAfterDefer
+      - hugeParam
+      - rangeValCopy
+      - appendAssign
+      - dupSubExpr
+      - typeSwitchVar
+      - elseif
+      - sloppyReassign
+      - paramTypeCombine
+      - emptyFallthrough
+      - stringXbytes
+      - valSwap
+      - appendCombine
+      - assignOp
+      - caseOrder
+      - dupCase
+      - dupArg
+      - dupBranchBody
+      - flagDeref
+      - methodExprCall
+      - newDeref
+      - offBy1
+      - regexpMust
+      - singleCaseSwitch
+      - sloppyLen
+      - underef
+      - unlambda
+      - unslice
+      - weakCond
+      - wrapperFunc
+      - yodaStyleExpr
+
+linters:
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - nakedret
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+run:
+  deadline: 5m
+  tests: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+        - gocyclo
+        - gocritic
+        - lll
+        - maligned
+        - scopelint
+        - stylecheck
+        - typecheck
+        - unused
+        - varcheck
+        - whitespace
+    - path: pkg/.*\.go
+      linters:
+        - dupl
+        - gocyclo
+        - gocritic
+        - lll
+        - maligned
+        - scopelint
+        - stylecheck
+        - typecheck
+        - unused
+        - varcheck
+        - whitespace
+    - path: cmd/.*\.go
+      linters:
+        - dupl
+        - gocyclo
+        - gocritic
+        - lll
+        - maligned
+        - scopelint
+        - stylecheck
+        - typecheck
+        - unused
+        - varcheck
+        - whitespace 
