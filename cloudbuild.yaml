@@ -1,0 +1,72 @@
+steps:
+  # Build e test do backend
+  - name: 'golang:1.21'
+    args: ['go', 'test', './...']
+    dir: 'backend'
+
+  # Build e test do frontend
+  - name: 'node:18'
+    args: ['npm', 'ci']
+    dir: 'frontend'
+  - name: 'node:18'
+    args: ['npm', 'test']
+    dir: 'frontend'
+
+  # Build da imagem Docker do backend
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/backend:${SHORT_SHA}', './backend']
+    dir: '.'
+
+  # Build da imagem Docker do frontend
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}', './frontend']
+    dir: '.'
+
+  # Push das imagens para o Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/backend:${SHORT_SHA}']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}']
+
+  # Deploy para Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'backend'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/backend:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'MONGODB_URI=${_MONGODB_URI},JWT_SECRET=${_JWT_SECRET}'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'frontend'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/frontend:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'REACT_APP_API_URL=${_API_URL}'
+
+substitutions:
+  _REGION: us-central1
+  _REPOSITORY: jurisconnect
+  _MONGODB_URI: mongodb://mongodb:27017/jurisconnect
+  _JWT_SECRET: your-secret-key
+  _API_URL: https://backend-${PROJECT_ID}.${_REGION}.run.app
+
+options:
+  logging: CLOUD_LOGGING_ONLY 
