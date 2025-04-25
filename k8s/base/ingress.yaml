@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jurisconnect
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - api.jurisconnect.com
+    - app.jurisconnect.com
+    secretName: jurisconnect-tls
+  rules:
+  - host: api.jurisconnect.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jurisconnect
+            port:
+              name: backend
+  - host: app.jurisconnect.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jurisconnect
+            port:
+              name: frontend 
