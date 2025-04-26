@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jurisconnect/backend/internal/domain"
 	"github.com/jurisconnect/backend/internal/repositories"
+	"github.com/jurisconnect/backend/internal/security"
 	"github.com/jurisconnect/backend/internal/services"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -293,6 +294,12 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	user, err := h.userService.GetByEmail(loginRequest.Email)
 	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "credenciais inválidas"})
+		return
+	}
+
+	// Verificar se a senha está correta
+	if !security.CheckPassword(loginRequest.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "credenciais inválidas"})
 		return
 	}
