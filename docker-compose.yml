@@ -10,11 +10,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - VITE_API_URL=${API_URL}
-      - VITE_APP_NAME=${APP_NAME}
-      - VITE_APP_ENV=${APP_ENV}
-      - NODE_ENV=development
+    env_file:
+      - .env
     depends_on:
       - backend
     networks:
@@ -26,15 +23,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    environment:
-      - PORT=${PORT}
-      - MONGODB_URI=mongodb://mongodb:27017/jurisconnect
-      - MONGODB_DATABASE=${MONGODB_DATABASE}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=${JWT_EXPIRATION}
-      - ENVIRONMENT=${APP_ENV}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
-      - RATE_LIMIT=${RATE_LIMIT}
+    env_file:
+      - .env
     depends_on:
       mongodb:
         condition: service_healthy

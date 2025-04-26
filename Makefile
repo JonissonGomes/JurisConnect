@@ -96,6 +96,7 @@ gcp-shell:
 up:
 	@echo "${GREEN}Iniciando containers...${RESET}"
 	docker-compose up -d
+	docker-compose logs -f
 
 ## Para todos os containers
 down:
@@ -106,6 +107,7 @@ down:
 rebuild:
 	@echo "${GREEN}Reconstruindo e iniciando containers...${RESET}"
 	docker-compose up -d --build
+	docker-compose logs -f
 
 ## Mostra logs dos containers
 logs:
