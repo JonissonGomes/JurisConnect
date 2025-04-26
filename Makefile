@@ -15,8 +15,19 @@ REGION ?= us-central1
 REPOSITORY ?= jurisconnect
 SERVICE_NAME ?= backend
 
+## Configura o ambiente
+env-setup:
+	@if [ ! -f .env ]; then \
+		echo "${GREEN}Arquivo .env não encontrado. Criando a partir do .env.example...${RESET}"; \
+		cp .env.example .env; \
+		echo "${GREEN}Arquivo .env criado com sucesso!${RESET}"; \
+		echo "${YELLOW}Por favor, configure as variáveis de ambiente no arquivo .env.${RESET}"; \
+	else \
+		echo "${GREEN}Arquivo .env já existe.${RESET}"; \
+	fi
+
 # Carrega variáveis do arquivo .env
-include .env
+-include .env
 export
 
 ## Mostra ajuda
@@ -44,26 +55,6 @@ check-deps:
 	@command -v golangci-lint >/dev/null 2>&1 || { echo "${RED}golangci-lint não está instalado.${RESET}"; exit 1; }
 	@command -v gcloud >/dev/null 2>&1 || { echo "${RED}Google Cloud SDK não está instalado.${RESET}"; exit 1; }
 	@echo "${GREEN}Todas as dependências estão instaladas!${RESET}"
-
-## Configura o ambiente
-env-setup:
-	@echo "${GREEN}Configurando ambiente...${RESET}"
-	@if [ -f .env ]; then \
-		echo "${YELLOW}O arquivo .env já existe. Deseja sobrescrever? (s/n)${RESET}"; \
-		read response; \
-		if [[ "$$response" =~ ^([nN][oO]|[nN])$$ ]]; then \
-			echo "${YELLOW}Operação cancelada.${RESET}"; \
-			exit 0; \
-		fi; \
-	fi
-	@cp .env.example .env
-	@echo "${GREEN}Arquivo .env criado com sucesso!${RESET}"
-	@echo "${YELLOW}Por favor, edite o arquivo .env e configure as variáveis de ambiente necessárias.${RESET}"
-	@echo "${YELLOW}Algumas variáveis importantes para configurar:${RESET}"
-	@echo "${YELLOW}- GCP_PROJECT_ID${RESET}"
-	@echo "${YELLOW}- GCP_REGION${RESET}"
-	@echo "${YELLOW}- CLOUD_SQL_INSTANCE_NAME${RESET}"
-	@echo "${YELLOW}- CLOUD_SQL_USER e CLOUD_SQL_PASSWORD${RESET}"
 
 ## Configura o ambiente GCP
 gcp-setup:
