@@ -1,59 +1,72 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"net/http"
-	"os"
-	"time"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/joho/godotenv"
+	"github.com/jurisconnect/backend/internal/config"
+	"github.com/jurisconnect/backend/internal/database"
+	"github.com/jurisconnect/backend/internal/handlers"
+	"github.com/jurisconnect/backend/internal/repositories"
+	"github.com/jurisconnect/backend/internal/routes"
+	"github.com/jurisconnect/backend/internal/services"
 )
 
 func main() {
-	// Configurar MongoDB
-	mongoURI := os.Getenv("MONGODB_URI")
-	if mongoURI == "" {
-		log.Fatal("MONGODB_URI não está configurada")
+	// Tentar carregar .env da raiz do projeto
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Aviso: arquivo .env não encontrado na raiz: %v", err)
+
+		// Tentar carregar .env do diretório backend
+		backendEnvPath := filepath.Join("backend", ".env")
+		if err := godotenv.Load(backendEnvPath); err != nil {
+			log.Printf("Aviso: arquivo .env não encontrado em %s: %v", backendEnvPath, err)
+		} else {
+			log.Printf("Arquivo .env carregado de %s", backendEnvPath)
+		}
+	} else {
+		log.Printf("Arquivo .env carregado da raiz do projeto")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Carregar configuração
+	cfg := config.Load()
+	log.Printf("Configuração carregada - MongoDB URI: %s", cfg.MongoDB.URI)
+	log.Printf("Configuração carregada - MongoDB Database: %s", cfg.MongoDB.Database)
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	// Inicializar conexão com MongoDB
+	db, err := database.NewMongoDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Erro ao conectar ao MongoDB: %v", err)
 	}
-	defer client.Disconnect(ctx)
+	defer db.Close()
 
-	// Ping no MongoDB para verificar a conexão
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		log.Fatal(err)
+	// Verificar conexão
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Erro ao pingar o MongoDB: %v", err)
 	}
-	fmt.Println("Conectado ao MongoDB com sucesso!")
+	log.Println("Conexão com MongoDB estabelecida com sucesso!")
 
-	// Configurar Gin
-	r := gin.Default()
+	// Inicializar repositório
+	userRepo := repositories.NewUserRepository(db)
 
-	// Rota de teste
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "It's working!",
-		})
-	})
+	// Inicializar serviço
+	userService := services.NewUserService(userRepo)
+
+	// Inicializar handler
+	userHandler := handlers.NewUserHandler(userService)
+
+	// Configurar router
+	router := gin.Default()
+
+	// Configurar rotas
+	routes.SetupRoutes(router, userHandler)
 
 	// Iniciar servidor
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	fmt.Printf("Servidor iniciado na porta %s\n", port)
-	if err := r.Run(":" + port); err != nil {
+	port := cfg.Server.Port
+	log.Printf("Servidor iniciado na porta %s", port)
+	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }
