@@ -450,9 +450,6 @@ export default function Register() {
         role: formData.role,
         password: formData.password
       };
-
-      console.log('Payload de registro:', JSON.stringify(payload, null, 2));
-
       await authService.register(payload);
       
     toast({
