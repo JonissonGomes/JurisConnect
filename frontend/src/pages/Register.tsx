@@ -633,7 +633,12 @@ export default function Register() {
               </AccordionItem>
 
               <AccordionItem value="address">
-                <AccordionTrigger>Endereço</AccordionTrigger>
+                <AccordionTrigger className="text-lg">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Endereço
+                  </div>
+                </AccordionTrigger>
                 <AccordionContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -859,7 +864,7 @@ export default function Register() {
                   {errors['password'] && (
                     <p className="text-sm text-red-500">{errors['password']}</p>
                   )}
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-2 space-y-1" style={{ marginTop: '20px' }}>
                     <div className="flex items-center gap-2 text-sm">
                       <Check className={cn("h-4 w-4", passwordRequirements.hasUpperCase ? "text-green-500" : "text-gray-400")} />
                       <span className={cn(passwordRequirements.hasUpperCase ? "text-green-500" : "text-gray-500")}>
