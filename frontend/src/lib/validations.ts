@@ -1,22 +1,29 @@
 export const masks = {
   phone: (value: string) => {
     const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length <= 10) {
-      return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    if (cleaned.length <= 2) return cleaned;
+    if (cleaned.length <= 6) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2)}`;
+    if (cleaned.length <= 10) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7, 11)}`;
   },
   cpf: (value: string) => {
     const cleaned = value.replace(/\D/g, '');
-    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)}.${cleaned.slice(3)}`;
+    if (cleaned.length <= 9) return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6)}`;
+    return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9, 11)}`;
   },
   rg: (value: string) => {
     const cleaned = value.replace(/\D/g, '');
-    return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, '$1.$2.$3-$4');
+    if (cleaned.length <= 1) return cleaned;
+    if (cleaned.length <= 4) return `${cleaned.slice(0, 1)}.${cleaned.slice(1)}`;
+    if (cleaned.length <= 7) return `${cleaned.slice(0, 1)}.${cleaned.slice(1, 4)}.${cleaned.slice(4)}`;
+    return `${cleaned.slice(0, 1)}.${cleaned.slice(1, 4)}.${cleaned.slice(4, 7)}`;
   },
   cep: (value: string) => {
     const cleaned = value.replace(/\D/g, '');
-    return cleaned.replace(/(\d{5})(\d{3})/, '$1-$2');
+    if (cleaned.length <= 5) return cleaned;
+    return `${cleaned.slice(0, 5)}-${cleaned.slice(5, 8)}`;
   },
 };
 
