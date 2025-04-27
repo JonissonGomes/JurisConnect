@@ -496,7 +496,7 @@ export default function Register() {
                       <Label htmlFor="personal_info.name">Nome Completo</Label>
                       <Input
                         id="personal_info.name"
-                        name="personal_info.name"
+                    name="personal_info.name"
                         type="text"
                         placeholder="Digite seu nome"
                         value={formData.personal_info.name}
@@ -631,7 +631,7 @@ export default function Register() {
                         <p className="text-sm text-red-500">{errors['personal_info.birth_date']}</p>
                       )}
                     </div>
-                  </div>
+                </div>
                 </AccordionContent>
               </AccordionItem>
 
@@ -754,7 +754,7 @@ export default function Register() {
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-5 w-5" />
                     Informações Profissionais
-                  </div>
+                </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -762,7 +762,7 @@ export default function Register() {
                       <Label htmlFor="professional_info.oab_number">Número da OAB</Label>
                       <Input
                         id="professional_info.oab_number"
-                        name="professional_info.oab_number"
+                      name="professional_info.oab_number"
                         type="text"
                         placeholder="Digite o número da OAB"
                         value={formData.professional_info.oab_number}
@@ -830,7 +830,7 @@ export default function Register() {
               </AccordionItem>
             </Accordion>
 
-            <div className="space-y-4">
+                <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha</Label>
@@ -838,27 +838,27 @@ export default function Register() {
                     <Input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Digite sua senha"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Digite sua senha"
                       value={formData.password}
                       onChange={handleChange}
                       className={errors['password'] ? "border-red-500 pr-10" : "pr-10"}
                       disabled={isLoading}
-                    />
+                              />
                     <Button
-                      type="button"
+                                type="button"
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-500" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-500" />
-                      )}
+                                onClick={() => setShowPassword(!showPassword)}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4 text-gray-500" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-gray-500" />
+                                )}
                     </Button>
-                  </div>
+                            </div>
                   {errors['password'] && (
                     <p className="text-sm text-red-500">{errors['password']}</p>
                   )}
@@ -925,9 +925,9 @@ export default function Register() {
                   {errors['confirmPassword'] && (
                     <p className="text-sm text-red-500">{errors['confirmPassword']}</p>
                   )}
+                  </div>
                 </div>
               </div>
-            </div>
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -962,7 +962,7 @@ export default function Register() {
               ) : (
                 'Criar Conta'
               )}
-            </Button>
+                </Button>
             <p className="text-sm text-center text-gray-500">
               Já tem uma conta?{' '}
               <Link
@@ -973,7 +973,7 @@ export default function Register() {
               </Link>
             </p>
           </CardFooter>
-        </form>
+            </form>
       </Card>
     </div>
   );
