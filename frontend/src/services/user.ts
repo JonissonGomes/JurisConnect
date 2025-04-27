@@ -18,6 +18,7 @@ export interface PersonalInfo {
   rg: string;
   birth_date: string;
   address: Address;
+  profile_image?: string;
 }
 
 export interface ProfessionalInfo {
@@ -33,7 +34,7 @@ export interface User {
   id: string;
   personal_info: PersonalInfo;
   professional_info: ProfessionalInfo;
-  role: 'client' | 'lawyer';
+  role: 'admin' | 'lawyer' | 'intern' | 'secretary' | 'client';
   is_active: boolean;
   last_login: string;
   created_at: string;
@@ -51,9 +52,25 @@ export const userService = {
     return response.data;
   },
 
+  async updateProfileImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('profile_image', file);
+    
+    const response = await api.post('/users/me/profile-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data.url;
+  },
+
   getInitials(name: string): string {
+    if (!name) return '';
+    
     return name
       .split(' ')
+      .filter(word => word.length > 0)
       .map(word => word[0])
       .join('')
       .toUpperCase()
@@ -61,6 +78,19 @@ export const userService = {
   },
 
   getRoleLabel(role: string): string {
-    return role === 'lawyer' ? 'Advogado' : 'Cliente';
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'lawyer':
+        return 'Advogado';
+      case 'intern':
+        return 'Estagiário';
+      case 'secretary':
+        return 'Secretário';
+      case 'client':
+        return 'Cliente';
+      default:
+        return 'Usuário';
+    }
   }
 }; 
