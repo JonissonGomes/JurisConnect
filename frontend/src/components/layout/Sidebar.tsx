@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { userService } from '@/services/user';
@@ -17,6 +17,7 @@ import {
 import { authService } from '@/services/auth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +34,16 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useUser();
+  const [userFullName, setUserFullName] = useState('');
+  const [userInitials, setUserInitials] = useState('');
+
+  useEffect(() => {
+    if (user?.personal_info?.name) {
+      const fullName = user.personal_info.name;
+      setUserFullName(fullName);
+      setUserInitials(userService.getInitials(fullName));
+    }
+  }, [user]);
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -119,14 +130,17 @@ export default function Sidebar() {
           <div className="p-4 border-t border-sidebar-border">
             {!collapsed && user && (
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-legal-secondary flex items-center justify-center text-legal-primary font-semibold">
-                  {user.personal_info?.name ? userService.getInitials(user.personal_info.name) : '??'}
-                </div>
+                <Avatar className="h-10 w-10 border border-legal-primary/20">
+                  <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
+                  <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-sidebar-foreground truncate">
-                        {user.personal_info?.name || 'Usuário'}
+                        {userFullName || 'Usuário'}
                       </p>
                       <p className="text-xs text-sidebar-foreground/60 truncate">
                         {user.role ? userService.getRoleLabel(user.role) : 'Carregando...'}
@@ -134,7 +148,7 @@ export default function Sidebar() {
                     </div>
                     <button
                       onClick={() => setShowLogoutModal(true)}
-                      className="p-1 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground ml-2"
+                      className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground ml-2"
                       title="Encerrar sessão"
                     >
                       <LogOut size={16} />
@@ -145,12 +159,15 @@ export default function Sidebar() {
             )}
             {collapsed && user && (
               <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-legal-secondary flex items-center justify-center text-legal-primary font-semibold">
-                  {user.personal_info?.name ? userService.getInitials(user.personal_info.name) : '??'}
-                </div>
+                <Avatar className="h-10 w-10 border border-legal-primary/20 cursor-pointer" onClick={() => setCollapsed(false)}>
+                  <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
+                  <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
                 <button
                   onClick={() => setShowLogoutModal(true)}
-                  className="p-1 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                  className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground"
                   title="Encerrar sessão"
                 >
                   <LogOut size={16} />
@@ -168,20 +185,20 @@ export default function Sidebar() {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setShowLogoutModal(false)}
           />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl transition-all animate-in fade-in zoom-in-95">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <LogOut className="w-6 h-6 text-red-500" />
+              <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <LogOut className="w-7 h-7 text-red-500" />
               </div>
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                   Encerrar Sessão
                 </h3>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Tem certeza que deseja sair do sistema?
+                  Tem certeza que deseja sair do sistema? Suas alterações não salvas serão perdidas.
                 </p>
               </div>
-              <div className="flex gap-3 mt-4">
+              <div className="flex gap-3 mt-2 w-full">
                 <Button
                   variant="outline"
                   onClick={() => setShowLogoutModal(false)}
