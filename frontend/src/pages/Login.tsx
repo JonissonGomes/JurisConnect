@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { authService } from "@/services/auth";
+import { toast } from "sonner";
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -17,9 +18,8 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -40,47 +40,32 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setLoading(true);
+
     if (!validateForm()) {
-      toast({
-        title: "Erro de validação",
-        description: "Por favor, preencha todos os campos",
-        variant: "destructive",
-      });
+      toast.error("Por favor, preencha todos os campos");
+      setLoading(false);
       return;
     }
 
-    setIsLoading(true);
     try {
-      await authService.login({
-        email: formData.email,
-        password: formData.password,
-        remember: formData.remember,
-      });
-
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Redirecionando para o dashboard...",
-      });
-      setTimeout(() => navigate("/dashboard"), 1500);
+      await authService.login(formData);
+      toast.success('Login realizado com sucesso! Redirecionando para o dashboard...');
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (error) {
-      toast({
-        title: "Erro ao fazer login",
-        description: error instanceof Error ? error.message : "Tente novamente mais tarde",
-        variant: "destructive",
-      });
+      toast.error('Email ou senha inválidos');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 py-8">
-      <Card className="w-full max-w-md mx-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-legal-primary/5 via-white to-legal-secondary/5 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center font-playfair">Bem-vindo</CardTitle>
-          <CardDescription className="text-center text-base">
-            Faça login para acessar sua conta
+          <CardTitle className="text-3xl font-playfair text-center">Bem-vindo</CardTitle>
+          <CardDescription className="text-center">
+            Entre com suas credenciais para acessar o sistema
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -91,14 +76,12 @@ export default function Login() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Digite seu email"
+                placeholder="seu@email.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={errors.email ? "border-red-500" : ""}
+                disabled={loading}
+                required
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
@@ -107,26 +90,27 @@ export default function Login() {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Digite sua senha"
+                  placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className={errors.password ? "border-red-500" : ""}
+                  disabled={loading}
+                  required
+                  className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-500" />
                   ) : (
                     <Eye className="h-4 w-4 text-gray-500" />
                   )}
-                </button>
+                </Button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password}</p>
-              )}
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -134,31 +118,45 @@ export default function Login() {
                   id="remember"
                   name="remember"
                   checked={formData.remember}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, remember: checked as boolean }))}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, remember: checked as boolean }))
+                  }
+                  disabled={loading}
                 />
-                <Label htmlFor="remember" className="text-sm">
-                  Lembrar de mim
-                </Label>
+                <Label htmlFor="remember" className="text-sm">Lembrar de mim</Label>
               </div>
-              <Button
-                variant="link"
-                className="px-0 h-auto"
-                onClick={() => navigate("/forgot-password")}
+              <Link
+                to="/forgot-password"
+                className="text-sm text-legal-primary hover:underline"
               >
                 Esqueceu a senha?
-              </Button>
+              </Link>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Entrando..." : "Entrar"}
+          <CardFooter className="flex flex-col gap-4">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                'Entrar'
+              )}
             </Button>
-            <div className="text-center text-sm">
-              Não tem uma conta?{" "}
-              <Button variant="link" className="px-0" onClick={() => navigate("/register")}>
+            <p className="text-sm text-center text-gray-500">
+              Não tem uma conta?{' '}
+              <Link
+                to="/register"
+                className="text-legal-primary hover:underline"
+              >
                 Cadastre-se
-              </Button>
-            </div>
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>
