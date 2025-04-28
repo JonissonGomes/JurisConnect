@@ -5,6 +5,7 @@ import { UserProvider } from '@/contexts/UserContext';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
+import Profile from '@/pages/Profile';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import Cases from './pages/Cases';
@@ -30,6 +31,7 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/clients" element={<Clients />} />
                         <Route path="/cases" element={<Cases />} />
+                        <Route path="/profile" element={<Profile />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Layout>
