@@ -16,7 +16,7 @@ RUN go mod download
 COPY . .
 
 # Compilar a aplicação
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/main ./cmd/api
+RUN go build -o /app/bin/main ./cmd/api
 
 # Final stage
 FROM alpine:latest
