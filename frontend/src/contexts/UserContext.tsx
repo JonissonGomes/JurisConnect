@@ -19,7 +19,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { isAuthenticated, user: authUser } = useAuth();
 
   const fetchUser = async () => {
-    if (!authUser?.id) return;
+    if (!authUser?.id) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
