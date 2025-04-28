@@ -32,9 +32,33 @@ export interface ProfessionalInfo {
 
 export interface User {
   id: string;
-  personal_info: PersonalInfo;
-  professional_info: ProfessionalInfo;
-  role: 'admin' | 'lawyer' | 'intern' | 'secretary' | 'client';
+  personal_info: {
+    name: string;
+    email: string;
+    phone: string;
+    cpf: string;
+    rg: string;
+    birth_date: string;
+    profile_image?: string;
+    address: {
+      street: string;
+      number: string;
+      complement: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      zip_code: string;
+    };
+  };
+  professional_info: {
+    oab_number?: string;
+    oab_state?: string;
+    specialties: string[];
+    hire_date: string;
+    department: string;
+    supervisor_id?: string;
+  };
+  role: string;
   is_active: boolean;
   last_login: string;
   created_at: string;
@@ -43,26 +67,26 @@ export interface User {
 
 export const userService = {
   async getCurrentUser(): Promise<User> {
-    const response = await api.get('/users/me');
+    const user = JSON.parse(localStorage.getItem('jurisconnect_user') || '{}');
+    const response = await api.get(`/api/users/${user.id}`);
     return response.data;
   },
 
   async updateUser(data: Partial<User>): Promise<User> {
-    const response = await api.put('/users/me', data);
+    const user = JSON.parse(localStorage.getItem('jurisconnect_user') || '{}');
+    const response = await api.put(`/api/users/${user.id}`, data);
     return response.data;
   },
 
   async updateProfileImage(file: File): Promise<string> {
-    const formData = new FormData();
-    formData.append('profile_image', file);
-    
-    const response = await api.post('/users/me/profile-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    // Simulando o upload de imagem
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     });
-    
-    return response.data.url;
   },
 
   getInitials(name: string): string {

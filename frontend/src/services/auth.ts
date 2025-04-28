@@ -50,11 +50,7 @@ class AuthService {
   private static readonly USER_KEY = 'jurisconnect_user';
   private static readonly REMEMBER_KEY = 'jurisconnect_remember';
 
-  private constructor() {
-    if (!this.shouldRemember()) {
-      this.logout();
-    }
-  }
+  private constructor() {}
 
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -63,25 +59,14 @@ class AuthService {
     return AuthService.instance;
   }
 
-  private shouldRemember(): boolean {
-    return localStorage.getItem(AuthService.REMEMBER_KEY) === 'true';
-  }
-
   public async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await api.post('/api/login', credentials);
-      const { user, token } = response.data;
+      const { user } = response.data;
       
+      // Salvar dados do usuário
       localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
       localStorage.setItem(AuthService.REMEMBER_KEY, String(credentials.remember));
-      
-      if (credentials.remember) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
-      
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       return { user };
     } catch (error) {
@@ -95,13 +80,10 @@ class AuthService {
   public async register(data: RegisterData): Promise<AuthResponse> {
     try {
       const response = await api.post('/api/users', data);
-      const { user, token } = response.data;
+      const { user } = response.data;
       
       localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
       localStorage.setItem(AuthService.REMEMBER_KEY, 'true');
-      localStorage.setItem('token', token);
-      
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       return { user };
     } catch (error) {
@@ -112,25 +94,24 @@ class AuthService {
     }
   }
 
-  public logout(): void {
-    localStorage.removeItem(AuthService.USER_KEY);
-    localStorage.removeItem(AuthService.REMEMBER_KEY);
-    localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    delete api.defaults.headers.common['Authorization'];
+  public async logout(): Promise<void> {
+    try {
+      await api.post('/api/logout');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      localStorage.removeItem(AuthService.USER_KEY);
+      localStorage.removeItem(AuthService.REMEMBER_KEY);
+    }
   }
 
   public isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!this.getUser();
   }
 
   public getUser(): any {
-    const user = localStorage.getItem(AuthService.USER_KEY);
-    return user ? JSON.parse(user) : null;
-  }
-
-  public getToken(): string | null {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userStr = localStorage.getItem(AuthService.USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
   }
 }
 
