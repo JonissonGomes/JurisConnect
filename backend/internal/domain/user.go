@@ -47,6 +47,26 @@ type Address struct {
 	ZipCode      string `bson:"zip_code" json:"zip_code"`
 }
 
+type UpdateUserRequest struct {
+	PersonalInfo struct {
+		Name      string  `json:"name"`
+		Email     string  `json:"email"`
+		Phone     string  `json:"phone"`
+		CPF       string  `json:"cpf"`
+		RG        string  `json:"rg"`
+		BirthDate string  `json:"birth_date"`
+		Address   Address `json:"address"`
+	} `json:"personal_info"`
+	ProfessionalInfo struct {
+		OABNumber    string   `json:"oab_number"`
+		OABState     string   `json:"oab_state"`
+		Department   string   `json:"department"`
+		Specialties  []string `json:"specialties"`
+		HireDate     string   `json:"hire_date"`
+		SupervisorID string   `json:"supervisor_id"`
+	} `json:"professional_info"`
+}
+
 type UserRepository interface {
 	Create(user *User) error
 	FindByID(id string) (*User, error)
