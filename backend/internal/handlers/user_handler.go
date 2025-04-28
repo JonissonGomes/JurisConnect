@@ -22,12 +22,12 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 
 type CreateUserRequest struct {
 	PersonalInfo struct {
-		Name      string    `json:"name" binding:"required"`
-		Email     string    `json:"email" binding:"required,email"`
-		Phone     string    `json:"phone" binding:"required"`
-		CPF       string    `json:"cpf" binding:"required"`
-		RG        string    `json:"rg" binding:"required"`
-		BirthDate time.Time `json:"birth_date" binding:"required"`
+		Name      string `json:"name" binding:"required"`
+		Email     string `json:"email" binding:"required,email"`
+		Phone     string `json:"phone" binding:"required"`
+		CPF       string `json:"cpf" binding:"required"`
+		RG        string `json:"rg" binding:"required"`
+		BirthDate string `json:"birth_date" binding:"required"`
 		Address   struct {
 			Street       string `json:"street" binding:"required"`
 			Number       string `json:"number" binding:"required"`
@@ -39,12 +39,12 @@ type CreateUserRequest struct {
 		} `json:"address" binding:"required"`
 	} `json:"personal_info" binding:"required"`
 	ProfessionalInfo struct {
-		OABNumber    string    `json:"oab_number"`
-		OABState     string    `json:"oab_state"`
-		Specialties  []string  `json:"specialties"`
-		HireDate     time.Time `json:"hire_date" binding:"required"`
-		Department   string    `json:"department" binding:"required"`
-		SupervisorID string    `json:"supervisor_id"`
+		OABNumber    string   `json:"oab_number"`
+		OABState     string   `json:"oab_state"`
+		Specialties  []string `json:"specialties"`
+		HireDate     string   `json:"hire_date" binding:"required"`
+		Department   string   `json:"department" binding:"required"`
+		SupervisorID string   `json:"supervisor_id"`
 	} `json:"professional_info" binding:"required"`
 	Role     string `json:"role" binding:"required,oneof=admin lawyer intern secretary"`
 	Password string `json:"password" binding:"required,min=6"`
@@ -57,10 +57,22 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// Converter datas para time.Time
+	birthDate, err := time.Parse("02/01/2006", req.PersonalInfo.BirthDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data de nascimento inválido. Use o formato DD/MM/AAAA"})
+		return
+	}
+
+	hireDate, err := time.Parse("02/01/2006", req.ProfessionalInfo.HireDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data de contratação inválido. Use o formato DD/MM/AAAA"})
+		return
+	}
+
 	// Converter SupervisorID para ObjectID se fornecido
 	var supervisorID primitive.ObjectID
 	if req.ProfessionalInfo.SupervisorID != "" {
-		var err error
 		supervisorID, err = primitive.ObjectIDFromHex(req.ProfessionalInfo.SupervisorID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "ID do supervisor inválido"})
@@ -75,7 +87,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 			Phone:     req.PersonalInfo.Phone,
 			CPF:       req.PersonalInfo.CPF,
 			RG:        req.PersonalInfo.RG,
-			BirthDate: req.PersonalInfo.BirthDate,
+			BirthDate: birthDate,
 			Address: domain.Address{
 				Street:       req.PersonalInfo.Address.Street,
 				Number:       req.PersonalInfo.Address.Number,
@@ -90,7 +102,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 			OABNumber:    req.ProfessionalInfo.OABNumber,
 			OABState:     req.ProfessionalInfo.OABState,
 			Specialties:  req.ProfessionalInfo.Specialties,
-			HireDate:     req.ProfessionalInfo.HireDate,
+			HireDate:     hireDate,
 			Department:   req.ProfessionalInfo.Department,
 			SupervisorID: supervisorID,
 		},
@@ -166,30 +178,6 @@ func (h *UserHandler) GetByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-type UpdateUserRequest struct {
-	PersonalInfo struct {
-		Name    string `json:"name"`
-		Email   string `json:"email" binding:"omitempty,email"`
-		Phone   string `json:"phone"`
-		Address struct {
-			Street       string `json:"street"`
-			Number       string `json:"number"`
-			Complement   string `json:"complement"`
-			Neighborhood string `json:"neighborhood"`
-			City         string `json:"city"`
-			State        string `json:"state"`
-			ZipCode      string `json:"zip_code"`
-		} `json:"address"`
-	} `json:"personal_info"`
-	ProfessionalInfo struct {
-		Specialties  []string `json:"specialties"`
-		Department   string   `json:"department"`
-		SupervisorID string   `json:"supervisor_id"`
-	} `json:"professional_info"`
-	Password string `json:"password" binding:"omitempty,min=6"`
-	IsActive bool   `json:"is_active"`
-}
-
 func (h *UserHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	_, err := primitive.ObjectIDFromHex(id)
@@ -198,7 +186,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var req UpdateUserRequest
+	var req domain.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -215,7 +203,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// Atualizar campos
+	// Atualizar campos pessoais
 	if req.PersonalInfo.Name != "" {
 		existingUser.PersonalInfo.Name = req.PersonalInfo.Name
 	}
@@ -225,23 +213,80 @@ func (h *UserHandler) Update(c *gin.Context) {
 	if req.PersonalInfo.Phone != "" {
 		existingUser.PersonalInfo.Phone = req.PersonalInfo.Phone
 	}
-	if req.PersonalInfo.Address.Street != "" {
-		existingUser.PersonalInfo.Address = domain.Address{
-			Street:       req.PersonalInfo.Address.Street,
-			Number:       req.PersonalInfo.Address.Number,
-			Complement:   req.PersonalInfo.Address.Complement,
-			Neighborhood: req.PersonalInfo.Address.Neighborhood,
-			City:         req.PersonalInfo.Address.City,
-			State:        req.PersonalInfo.Address.State,
-			ZipCode:      req.PersonalInfo.Address.ZipCode,
+	if req.PersonalInfo.CPF != "" {
+		existingUser.PersonalInfo.CPF = req.PersonalInfo.CPF
+	}
+	if req.PersonalInfo.RG != "" {
+		existingUser.PersonalInfo.RG = req.PersonalInfo.RG
+	}
+	if req.PersonalInfo.BirthDate != "" {
+		birthDate, err := time.Parse("02/01/2006", req.PersonalInfo.BirthDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data de nascimento inválido. Use o formato DD/MM/AAAA"})
+			return
+		}
+		existingUser.PersonalInfo.BirthDate = birthDate
+	}
+
+	// Atualizar endereço
+	if req.PersonalInfo.Address != (domain.Address{}) {
+		if req.PersonalInfo.Address.Street != "" {
+			existingUser.PersonalInfo.Address.Street = req.PersonalInfo.Address.Street
+		}
+		if req.PersonalInfo.Address.Number != "" {
+			existingUser.PersonalInfo.Address.Number = req.PersonalInfo.Address.Number
+		}
+		if req.PersonalInfo.Address.Complement != "" {
+			existingUser.PersonalInfo.Address.Complement = req.PersonalInfo.Address.Complement
+		}
+		if req.PersonalInfo.Address.Neighborhood != "" {
+			existingUser.PersonalInfo.Address.Neighborhood = req.PersonalInfo.Address.Neighborhood
+		}
+		if req.PersonalInfo.Address.City != "" {
+			existingUser.PersonalInfo.Address.City = req.PersonalInfo.Address.City
+		}
+		if req.PersonalInfo.Address.State != "" {
+			existingUser.PersonalInfo.Address.State = req.PersonalInfo.Address.State
+		}
+		if req.PersonalInfo.Address.ZipCode != "" {
+			existingUser.PersonalInfo.Address.ZipCode = req.PersonalInfo.Address.ZipCode
 		}
 	}
 
-	if len(req.ProfessionalInfo.Specialties) > 0 {
-		existingUser.ProfessionalInfo.Specialties = req.ProfessionalInfo.Specialties
+	// Atualizar informações profissionais
+	if req.ProfessionalInfo.OABNumber != "" {
+		existingUser.ProfessionalInfo.OABNumber = req.ProfessionalInfo.OABNumber
+	}
+	if req.ProfessionalInfo.OABState != "" {
+		existingUser.ProfessionalInfo.OABState = req.ProfessionalInfo.OABState
 	}
 	if req.ProfessionalInfo.Department != "" {
 		existingUser.ProfessionalInfo.Department = req.ProfessionalInfo.Department
+	}
+	if len(req.ProfessionalInfo.Specialties) > 0 {
+		existingUser.ProfessionalInfo.Specialties = req.ProfessionalInfo.Specialties
+	}
+	if req.ProfessionalInfo.HireDate != "" {
+		hireDate, err := time.Parse("02/01/2006", req.ProfessionalInfo.HireDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Formato de data de contratação inválido. Use o formato DD/MM/AAAA"})
+			return
+		}
+
+		// Validar se a data de contratação não é no futuro
+		if hireDate.After(time.Now()) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "A data de contratação não pode ser no futuro"})
+			return
+		}
+
+		// Validar se a data de contratação não é anterior a 1900
+		minDate := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+		if hireDate.Before(minDate) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "A data de contratação não pode ser anterior a 1900"})
+			return
+		}
+
+		existingUser.ProfessionalInfo.HireDate = hireDate
 	}
 	if req.ProfessionalInfo.SupervisorID != "" {
 		supervisorID, err := primitive.ObjectIDFromHex(req.ProfessionalInfo.SupervisorID)
@@ -252,11 +297,6 @@ func (h *UserHandler) Update(c *gin.Context) {
 		existingUser.ProfessionalInfo.SupervisorID = supervisorID
 	}
 
-	if req.Password != "" {
-		existingUser.Password = req.Password
-	}
-
-	existingUser.IsActive = req.IsActive
 	existingUser.UpdatedAt = time.Now()
 
 	if err := h.userService.Update(existingUser); err != nil {
