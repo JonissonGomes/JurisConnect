@@ -128,51 +128,63 @@ export default function Sidebar() {
           </nav>
 
           <div className="p-4 border-t border-sidebar-border">
-            {!collapsed && user && (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border border-legal-primary/20">
-                  <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
-                  <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
+            {!loading && user && (
+              <>
+                {!collapsed ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar 
+                      className="h-10 w-10 border border-legal-primary/20 cursor-pointer hover:ring-2 hover:ring-legal-primary/20 transition-all"
+                      onClick={() => navigate('/profile')}
+                    >
+                      <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
+                      <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-sidebar-foreground truncate">
-                        {userFullName || 'Usuário'}
-                      </p>
-                      <p className="text-xs text-sidebar-foreground/60 truncate">
-                        {user.role ? userService.getRoleLabel(user.role) : 'Carregando...'}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => navigate('/profile')}
+                        >
+                          <p className="text-sm font-medium text-sidebar-foreground truncate">
+                            {userFullName || 'Usuário'}
+                          </p>
+                          <p className="text-xs text-sidebar-foreground/60 truncate">
+                            {user.role ? userService.getRoleLabel(user.role) : 'Carregando...'}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowLogoutModal(true)}
+                          className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground ml-2"
+                          title="Encerrar sessão"
+                        >
+                          <LogOut size={16} />
+                        </button>
+                      </div>
                     </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Avatar 
+                      className="h-10 w-10 border border-legal-primary/20 cursor-pointer hover:ring-2 hover:ring-legal-primary/20 transition-all" 
+                      onClick={() => navigate('/profile')}
+                    >
+                      <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
+                      <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
                     <button
                       onClick={() => setShowLogoutModal(true)}
-                      className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground ml-2"
+                      className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground"
                       title="Encerrar sessão"
                     >
                       <LogOut size={16} />
                     </button>
                   </div>
-                </div>
-              </div>
-            )}
-            {collapsed && user && (
-              <div className="flex flex-col items-center gap-2">
-                <Avatar className="h-10 w-10 border border-legal-primary/20 cursor-pointer" onClick={() => setCollapsed(false)}>
-                  <AvatarImage src={user.personal_info?.profile_image} alt={userFullName} />
-                  <AvatarFallback className="bg-legal-secondary text-legal-primary font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <button
-                  onClick={() => setShowLogoutModal(true)}
-                  className="p-2 rounded-md hover:bg-sidebar-foreground/10 text-sidebar-foreground/60 hover:text-sidebar-foreground"
-                  title="Encerrar sessão"
-                >
-                  <LogOut size={16} />
-                </button>
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>
