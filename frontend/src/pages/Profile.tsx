@@ -8,12 +8,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 import { userService } from "@/services/user";
 import { toast } from "sonner";
 import { User, Upload, Save, Edit, X, Check, Camera } from "lucide-react";
 import { masks } from "@/lib/validations";
 import { searchCEP } from "@/services/cep";
+
+const specialties = [
+  "Direito Civil",
+  "Direito Trabalhista",
+  "Direito Penal",
+  "Direito Tributário",
+  "Direito Empresarial",
+  "Direito do Consumidor",
+  "Direito Previdenciário",
+  "Direito Ambiental",
+  "Direito Digital",
+  "Direito Internacional"
+];
 
 interface ProfessionalInfoState {
   oab_number?: string;
@@ -858,6 +872,16 @@ export default function Profile() {
                     onChange={handleProfessionalChange}
                     disabled={!isEditingProfessional || isLoading}
                     placeholder="DD/MM/AAAA"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="specialties">Especialidades</Label>
+                  <MultiSelect
+                    options={specialties}
+                    selected={professionalInfo.specialties}
+                    onChange={(value) => setProfessionalInfo(prev => ({ ...prev, specialties: value }))}
+                    disabled={!isEditingProfessional || isLoading}
+                    placeholder="Selecione as especialidades"
                   />
                 </div>
               </div>
